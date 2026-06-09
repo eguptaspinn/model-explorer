@@ -1,0 +1,11 @@
+.dialog-container { min-width: 420px; }
+.pipeline-field { width: 100%; }
+.model-path {
+  font-size: 11px;
+  color: #777;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+textarea { font-family: monospace; }

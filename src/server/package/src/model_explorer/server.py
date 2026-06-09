@@ -50,6 +50,10 @@ from .server_directive_dispatcher import ServerDirectiveDispatcher
 from .server_director import ServerDirector
 from .utils import convert_adapter_response
 
+import uuid
+
+_STAGE_IR: dict[str, str] = {}
+
 server_directive_dispatcher = ServerDirectiveDispatcher()
 
 # For watching model file changes.
@@ -353,6 +357,62 @@ def start(
     finally:
       extension_manager.cleanup(request.json)
 
+  @app.route('/apipost/v1/run_pass_pipeline', methods=['POST'])
+  def run_pass_pipeline():
+    body = request.json or {}
+    model_path = body.get("modelPath", "")
+    pipeline = (body.get("pipeline") or "").strip()
+    base_stage_id = body.get("baseStageId") or ""
+    if not pipeline:
+      return _make_json_response({"error": "No pass pipeline provided"})
+    
+    # base IR -> previously produced stage or the original IR
+    if base_stage_id and base_stage_id in _STAGE_IR:
+      ir_text = _STAGE_IR[base_stage_id]
+    else:
+      try:
+        with open(model_path, "r", encoding="utf-8") as f:
+          ir_text = f.read()
+      except OSError as e:
+        return _make_json_response({"error": f"Cannot read model file: {e}"})
+    
+    try:
+      from s2_adapter.pass_runner import apply_pass_pipeline
+      from s2_adapter.main import _build_collection_from_ir
+    except ImportError as e:
+      return _make_json_response({"error": f"s2_adapter not available: {e}"})
+    
+    result = apply_pass_pipeline(ir_text, pipeline)
+
+    collections = []
+    stages_meta = []
+    for stage in result.stages:
+      stage_id = uuid.uuid4().hex
+      _STAGE_IR[stage_id] = stage.ir_text
+      stages_meta.append(
+        {
+          "stageId": stage_id,
+          "label": stage.label,
+        }
+      )
+      try:
+        collections.append(
+          _build_collection_from_ir(ir_text=stage.ir_text, label=stage.label)
+        )
+      except Exception as e:
+        print(f"[run_pass_pipeline] skip stage {stage.label}: {e}")
+
+    converted = convert_adapter_response({"graphCollections": collections})
+    response = {
+      "graphCollections": converted["graphCollections"]
+      if converted else [],
+      "stages": stages_meta,
+    }
+    if result.error:
+      response["error"] = result.error
+      response["diagnostics"] = result.diagnostic
+    return _make_json_response(response)
+    
   @app.route('/api/v1/load_graphs_json')
   def load_graphs_json():
     if config is None:

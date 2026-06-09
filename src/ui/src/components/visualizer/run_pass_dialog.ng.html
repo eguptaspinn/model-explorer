@@ -1,0 +1,29 @@
+<div class="dialog-container">
+  <h2 mat-dialog-title>Run MLIR pass pipeline</h2>
+  <mat-dialog-content>
+    @if (data.modelPath) {
+      <div class="model-path">{{data.modelPath}}</div>
+    }
+
+    <mat-form-field appearance="outline" class="base-field">
+      <mat-label>Lower from</mat-label>
+      <mat-select [formControl]="baseStageId">
+        <mat-option [value]="''">Original IR</mat-option>
+        @for (stage of data.stages; track stage.stageId) {
+          <mat-option [value]="stage.stageId">{{stage.label}}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="pipeline-field">
+      <mat-label>Pass pipeline</mat-label>
+      <textarea matInput rows="4" [formControl]="pipeline"
+          placeholder="e.g. cse, canonicalize"></textarea>
+    </mat-form-field>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-flat-button color="primary"
+        [disabled]="pipeline.invalid" (click)="handleRun()">Run</button>
+  </mat-dialog-actions>
+</div>

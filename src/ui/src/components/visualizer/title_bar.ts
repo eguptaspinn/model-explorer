@@ -48,6 +48,9 @@ import {
   RunNdpExtensionDialogData,
   RunNdpExtensionDialogResult,
 } from './run_ndp_extension_dialog';
+import { PassRunnerService } from '../../services/pass_runner_service';
+import {RunPassDialog, RunPassDialogData, RunPassDialogResult} from './run_pass_dialog';
+
 
 let ndpId = 0;
 
@@ -81,6 +84,7 @@ export class TitleBar {
   private readonly nodeDataProviderExtensionService = inject(
     NodeDataProviderExtensionService,
   );
+  private readonly passRunnerService = inject(PassRunnerService);
   private readonly extensionService = inject(ExtensionService);
   private readonly snackBar = inject(MatSnackBar);
 
@@ -108,6 +112,46 @@ export class TitleBar {
         this.runNdpExtension(extension, result.runName, result.configValues);
       });
   }
+
+    openRunPassDialog() {
+    const modelGraph = this.appService.getModelGraphFromSelectedPane();
+    const modelPath = modelGraph?.modelPath ?? '';
+    if (!modelPath) {
+      this.snackBar.open('No model loaded', 'Dismiss', {duration: 3000});
+      return;
+    }
+    const stages = this.passRunnerService.getStages(modelPath);
+    const defaultStageId =
+      stages.length > 0 ? stages[stages.length - 1].stageId : '';
+    const data: RunPassDialogData = {modelPath, stages, defaultStageId};
+    const dialogRef = this.dialog.open(RunPassDialog, {data});
+    dialogRef.afterClosed().subscribe(async (result?: RunPassDialogResult) => {
+      if (!result || !result.pipeline) return;
+      const {graphCollections, error, diagnostics} =
+        await this.passRunnerService.runPassPipeline(
+          modelPath,
+          result.pipeline,
+          result.baseStageId,
+        );
+      if (graphCollections && graphCollections.length > 0) {
+        for (const collection of graphCollections) {
+          for (const graph of collection.graphs) {
+            graph.modelPath = modelPath;
+          }
+        }
+        this.appService.addGraphCollections(graphCollections);
+      }
+      if (error) {
+        this.snackBar.open(
+          [error, ...(diagnostics ?? [])].join('\n'),
+          'Dismiss',
+          {duration: 6000},
+        );
+      }
+    });
+  }
+
+
 
   get onPortal(): boolean {
     return this.appService.onPortal;

@@ -43,6 +43,11 @@ limitations under the License.
     <node-styler (nodeStylerOpened)="nodeStylerOpened.emit()"></node-styler>
 
     <div class="icons-container">
+      <button mat-icon-button aria-label="run-pass"
+          matTooltip="Run MLIR pass pipeline" (click)="openRunPassDialog()">
+        <mat-icon>bolt</mat-icon>
+      </button>
+
       <a href="https://github.com/google-ai-edge/model-explorer" target="_blank">
         <button mat-icon-button aria-label="doc" matTooltip="GitHub">
           <mat-icon>article</mat-icon>
