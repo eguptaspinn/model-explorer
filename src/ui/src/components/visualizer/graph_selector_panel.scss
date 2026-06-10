@@ -45,6 +45,27 @@
     .collection-label {
       font-weight: 700;
       padding: 4px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      .delete-collection-btn {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        line-height: 16px;
+        cursor: pointer;
+        opacity: 0;
+        color: var(--me-on-surface-variant-color);
+      }
+    }
+
+    &:hover .collection-label .delete-collection-btn {
+      opacity: 0.7;
+    }
+
+    .collection-label .delete-collection-btn:hover {
+      opacity: 1;
     }
   }
 

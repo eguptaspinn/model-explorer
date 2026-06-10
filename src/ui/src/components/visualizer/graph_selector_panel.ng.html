@@ -22,7 +22,14 @@ limitations under the License.
   <div *ngFor="let collection of curGraphCollectionItems; trackBy: trackByCollection"
       class="collection-container">
     <div class="collection-label">
-      {{collection.label}}
+      <span>{{collection.label}}</span>
+      <mat-icon class="delete-collection-btn"
+          *ngIf="!collection.label.includes('original')"
+          matTooltip="Remove this graph"
+          matTooltipPosition="right"
+          (click)="handleDeleteCollection($event, collection)">
+        delete
+      </mat-icon>
     </div>
     <div *ngFor="let graph of collection.graphs; trackBy: trackByGraph"
         class="graph-item-container"

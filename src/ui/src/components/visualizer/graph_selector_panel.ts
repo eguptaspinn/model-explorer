@@ -92,6 +92,18 @@ export class GraphSelectorPanel {
     this.curFilterText = value.toLowerCase();
   }
 
+  handleDeleteCollection(
+    event: MouseEvent,
+    collectionItem: GraphCollectionItem,
+  ) {
+    event.stopPropagation();
+    this.appService.removeGraphCollection(collectionItem.collection);
+    // Drop it from the open panel immediately.
+    this.graphCollectionItems = this.graphCollectionItems.filter(
+      (item) => item.collection !== collectionItem.collection,
+    );
+  }
+
   handleClickOpenInSplitPane(event: MouseEvent, graphItem: GraphItem) {
     event.stopPropagation();
 

@@ -51,6 +51,7 @@ import {
   ShowOnEdgeItemOldData,
   ShowOnEdgeItemType,
   ShowOnNodeItemData,
+  ShowOnNodeItemType,
   SnapshotData,
 } from './common/types';
 import {genUid, isOpNode} from './common/utils';
@@ -262,6 +263,32 @@ export class AppService {
       newCollections.push(...graphCollections);
       return newCollections;
     });
+  }
+
+  removeGraphCollection(collection: GraphCollection) {
+    const collections = this.curGraphCollections();
+    // Keep at least one collection on screen.
+    if (collections.length <= 1) {
+      return;
+    }
+
+    // Is the graph currently shown part of the one we're deleting?
+    const selectedGraphId = this.getSelectedPane()?.modelGraph?.id ?? '';
+    const removingSelected = collection.graphs.some(
+      (g) => g.id === selectedGraphId,
+    );
+
+    this.curGraphCollections.update((cols) =>
+      cols.filter((c) => c !== collection),
+    );
+
+    // If we removed the displayed graph, fall back to the first remaining one.
+    if (removingSelected) {
+      const fallback = this.curGraphCollections()[0]?.graphs?.[0];
+      if (fallback) {
+        this.selectGraphInCurrentPane(fallback);
+      }
+    }
   }
 
   selectGraphInPane(
@@ -916,6 +943,12 @@ export class AppService {
       );
       if (data) {
         curTypes = JSON.parse(data) as Record<string, ShowOnNodeItemData>;
+      } else {
+        // Default (no saved preference yet): show the "target" op-node
+        // attribute on nodes.
+        curTypes = {
+          [ShowOnNodeItemType.OP_ATTRS]: {selected: true, filterRegex: 'target'},
+        };
       }
     }
     return curTypes;

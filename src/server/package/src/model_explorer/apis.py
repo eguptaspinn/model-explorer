@@ -68,6 +68,7 @@ def visualize(
     reuse_server_host: str = DEFAULT_HOST,
     reuse_server_port: Union[int, None] = None,
     watch: bool = False,
+    adapter: str = '',
 ) -> None:
   """Starts the ME local server and visualizes the models by the given paths.
 
@@ -85,6 +86,8 @@ def visualize(
         try to find a running server from port 8080 to 8099.
     watch: Whether to watch for changes in model files. If `True`, the page will
         automatically refresh when changes are detected.
+    adapter: The adapter extension id to use for the given model paths (e.g.
+        "s2_explorer"). If empty, the default per-file-extension adapter is used.
   """
   # Construct config.
   cur_config = config()
@@ -93,7 +96,7 @@ def visualize(
   if isinstance(model_paths, str):
     model_paths_list = [model_paths]
   for model_path in model_paths_list:
-    cur_config.add_model_from_path(path=model_path)
+    cur_config.add_model_from_path(path=model_path, adapterId=adapter)
 
   _add_node_data_to_config(node_data=node_data, config=cur_config)
 

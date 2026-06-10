@@ -43,6 +43,14 @@ parser.add_argument(
     '--extensions', help='comma separated extension module names'
 )
 parser.add_argument(
+    '--adapter',
+    default='',
+    help=(
+        'adapter extension id to use for the given model paths '
+        '(e.g. s2_explorer). Overrides the default per-file-extension adapter.'
+    ),
+)
+parser.add_argument(
     '--cors_host', help='the host of the Access-Control-Allow-Origin header'
 )
 parser.add_argument(
@@ -100,7 +108,7 @@ def main():
   # Construct config.
   config = ModelExplorerConfig()
   for model_path in model_paths:
-    config.add_model_from_path(model_path)
+    config.add_model_from_path(model_path, adapterId=args.adapter)
   for node_data_path in node_data_paths:
     config.add_node_data_from_path(node_data_path)
   if args.reuse_server:
